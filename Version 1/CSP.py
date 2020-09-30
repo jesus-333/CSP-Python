@@ -14,7 +14,8 @@ from CSP_support_function import cleanWorkspaec
 from CSP_support_function import loadDataset100Hz, computeTrial
 from CSP_support_function import PSDEvaluation, plotPSD_V1, plotPSD_V2
 from CSP_support_function import bandFilterTrials, plotTrial
-from CSP_support_function import logVarEvaluation, evaluateW, evaluateW_V2, spatialFilteringW, plotFeatures, plotFeaturesScatter
+from CSP_support_function import logVarEvaluation, evaluateW, spatialFilteringW, plotFeatures, plotFeaturesScatter
+from CSP_support_function import trainClassifier
 
 import numpy as np
 
@@ -22,7 +23,7 @@ import numpy as np
 
 path = 'Dataset/D1_100Hz/Train/BCICIV_calib_ds1'
 # path = 'Dataset/D1_100Hz/Test/BCICIV_eval_ds1'
-idx = 'c'
+idx = 'a'
 
 plot_var = False
 
@@ -64,11 +65,13 @@ if(plot_var): plotFeatures(features_1, features_2)
 
 #%% Spatial filter evaluation
 
-# W = evaluateW(filt_1, filt_2)
-W = evaluateW_V2(filt_1, filt_2)
+W = evaluateW(filt_1, filt_2)
 features_1_CSP = logVarEvaluation(spatialFilteringW(filt_1, W))
 features_2_CSP = logVarEvaluation(spatialFilteringW(filt_2, W))
 
 # plotFeatures(features_1, features_2)
-if(plot_var): plotFeatures(features_1_CSP, features_2_CSP)
+plotFeatures(features_1_CSP, features_2_CSP)
 plotFeaturesScatter(features_1_CSP, features_2_CSP)
+
+#%% Train classifier
+LDA_clf = trainClassifier(features_1_CSP, features_2_CSP)

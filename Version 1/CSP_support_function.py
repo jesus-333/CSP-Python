@@ -17,6 +17,7 @@ import scipy.linalg as la
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 
 #%% Function for 100Hz dataset (Dataset IV-1) and data handling
+# This function are specific for the dataset IV-1
 
 def loadDataset100Hz(path, idx, type_dataset):
     tmp = loadmat(path + idx + '.mat');
@@ -148,6 +149,29 @@ def PSDEvaluation(trials_matrix, fs = 1):
     return PSD_trial, freq_list
 
 def bandFilterTrials(trials_matrix, fs, low_f, high_f, filter_order = 3):
+    """
+    Applying a pass-band fitlering to the data. The filter implementation was done with scipy.signal
+
+    Parameters
+    ----------
+    trials_matrix : numpy matrix
+        Numpy matrix with the various EEG trials. The dimensions of the matrix must be n_trial x n_channel x n_samples
+    fs : int/double
+        Frequency sampling.
+    low_f : int/double
+        Low band of the pass band filter.
+    high_f : int/double
+        High band of the pass band filter..
+    filter_order : int, optional
+        Order of the filter. The default is 3.
+
+    Returns
+    -------
+    filter_trails_matrix : numpy matrix
+         Numpy matrix with the various filtered EEG trials. The dimensions of the matrix must be n_trial x n_channel x n_samples.
+
+    """
+    
     # Evaluate low buond and high bound in the [0, 1] range
     low_bound = low_f / (fs/2)
     high_bound = high_f / (fs/2)
@@ -196,7 +220,7 @@ def logVarEvaluation(trials):
 
 def trialCovariance(trials):
     """
-    % Calculate the covariance for each trial and return their average
+    Calculate the covariance for each trial and return their average
 
     Parameters
     ----------
@@ -222,7 +246,7 @@ def trialCovariance(trials):
         
     return mean_cov
 
-def whitening(sigma, mode = 1):
+def whitening(sigma, mode = 2):
     """
     Calculate the whitening matrix for the input matrix sigma
 
@@ -242,21 +266,19 @@ def whitening(sigma, mode = 1):
     
       
     if(mode != 1 and mode != 2): mode == 1
-    # print(mode)
     
     if(mode == 1):
         # Whitening constant: prevents division by zero
         epsilon = 1e-5
         
         # ZCA Whitening matrix: U * Lambda * U'
-        # x = np.dot(u, np.dot(np.diag(1.0/np.sqrt(s + epsilon)), u.T)) # [M x M]
-        x = np.dot(np.sqrt(la.inv(np.diag(s))), np.transpose(u))
+        x = np.dot(u, np.dot(np.diag(1.0/np.sqrt(s + epsilon)), u.T))
     else:
         # eigenvalue decomposition of the covariance matrix
         d, V = np.linalg.eigh(sigma)
         fudge = 10E-18
      
-        # a fudge factor can be used so that eigenvectors associated with
+        # A fudge factor can be used so that eigenvectors associated with
         # small eigenvalues do not get overamplified.
         D = np.diag(1. / np.sqrt(d+fudge))
      
@@ -283,51 +305,31 @@ def evaluateW(trials_1, trials_2):
 
     """
     
+    # Evaluate covariance matrix for the two classes
     cov_1 = trialCovariance(trials_1)
     cov_2 = trialCovariance(trials_2)
-    
-    P = whitening(cov_1 + cov_2)
-    
-    tmp = (P.T).dot(cov_2)
-    # tmp = np.transpose(P).dot(cov_2)
-    B =  np.linalg.svd(tmp.dot(P))[0]
-    
-    W = P.dot(B)
-    
-    return W
-
-
-def evaluateW_V2(trials_1, trials_2):
-    cov_1 = trialCovariance(trials_1)
-    cov_2 = trialCovariance(trials_2)
-    
     R = cov_1 + cov_2
-    E, U = la.eig(R)
     
-    # CSP requires the eigenvalues E and eigenvector U be sorted in descending order
-    ord = np.argsort(E)
-    ord = ord[::-1] # argsort gives ascending order, flip to get descending
-    E = E[ord]
-    U = U[:,ord]
-    
-    # Find the whitening transformation matrix
-    P = np.dot(np.sqrt(la.inv(np.diag(E))), np.transpose(U))
+    # Evaluate whitening matrix
+    P = whitening(R)
     
     # The mean covariance matrices may now be transformed
-    Sa = np.dot(P, np.dot(cov_1, np.transpose(P)))
-    Sb = np.dot(P, np.dot(cov_2, np.transpose(P)))
+    cov_1_white = np.dot(P, np.dot(cov_1, np.transpose(P)))
+    cov_2_white = np.dot(P, np.dot(cov_2, np.transpose(P)))
     
+    # CSP requires the eigenvalues and eigenvector be sorted in descending order
     # Find and sort the generalized eigenvalues and eigenvector
-    E1, U1 = la.eig(Sa,Sb)
+    E1, U1 = la.eig(cov_1_white, cov_2_white)
     ord1 = np.argsort(E1)
     ord1 = ord1[::-1]
     E1 = E1[ord1]
-    U1 = U1[:,ord1]
+    U1 = U1[:, ord1]
     
     # The projection matrix (the spatial filter) may now be obtained
-    SFa = np.dot(np.transpose(U1), P)
+    W = np.dot(np.transpose(U1), P)
     
-    return SFa.astype(np.float32)
+    return W
+
 
 def spatialFilteringW(trials, W):
     trials_csp = np.zeros(trials.shape)
@@ -339,7 +341,43 @@ def spatialFilteringW(trials, W):
 
 #%% Classification function
 
-def classifierLDA(features_1, features_2)
+def trainClassifier(features_1, features_2, train_ratio = 0.75, classifier = None):
+    
+    # Save both features in a single data matrix
+    data_matrix = np.zeros((features_1.shape[0] + features_2.shape[0], features_1.shape[1]))
+    data_matrix[0:features_1.shape[0], :] = features_1
+    data_matrix[0:features_2.shape[0], :] = features_2
+    
+    # Create the label vector
+    label = np.zeros(data_matrix.shape[0])
+    label[0:features_1.shape[0]] = 1
+    label[features_1.shape[0]:] = 2
+    
+    # Shuffle the data
+    perm = np.random.permutation(len(label))
+    label = label[perm]
+    data_matrix = data_matrix[perm, :]
+    
+    # Select the portion of data used during training
+    if(train_ratio <= 0 or train_ratio >= 1): train_ratio = 0.75
+    index_training = int(data_matrix.shape[0] * train_ratio)
+    train_data = data_matrix[0:index_training, :]
+    train_label = label[0:index_training]
+    test_data = data_matrix[index_training:, :]
+    test_label = label[index_training:]
+    
+    # Select classifier
+    if(classifier == None): classifier = LDA()
+    else: classifier = classifier
+    
+    # Train Classifier
+    classifier.fit(train_data, train_label)
+    print("Accuracy on TRAIN set: ", classifier.score(train_data, train_label))
+    
+    # Test parameters
+    print("Accuracy on TEST set: ", classifier.score(test_data, test_label))
+    
+    return classifier
     
 
 #%% Plot Functions
