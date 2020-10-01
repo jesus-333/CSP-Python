@@ -44,9 +44,10 @@ for idx in tmp_string:
     CSP_clf = CSP(trials_dict, fs)
     
     # CSP_clf.plotFeatures()
+    # CSP_clf.plotPSD(15, 12)
     
     CSP_clf.trainClassifier()
-    a = CSP_clf.trainLDA()
+    CSP_clf.trainLDA()
     
     # CSP_clf.trainClassifier(classifier = SVC(kernel = 'linear'))
     

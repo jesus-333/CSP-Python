@@ -209,16 +209,15 @@ class CSP():
         cov_1_white = np.dot(P, np.dot(cov_1, np.transpose(P)))
         cov_2_white = np.dot(P, np.dot(cov_2, np.transpose(P)))
         
-        # CSP requires the eigenvalues and eigenvector be sorted in descending order
-        # Find and sort the generalized eigenvalues and eigenvector
-        E1, U1 = la.eig(cov_1_white, cov_2_white)
-        ord1 = np.argsort(E1)
-        ord1 = ord1[::-1]
-        E1 = E1[ord1]
-        U1 = U1[:, ord1]
+        # Since CSP requires the eigenvalues and eigenvector be sorted in descending order we find and sort the generalized eigenvalues and eigenvector
+        E, U = la.eig(cov_1_white, cov_2_white)
+        order = np.argsort(E)
+        order = order[::-1]
+        E = E[order]
+        U = U[:, order]
         
         # The projection matrix (the spatial filter) may now be obtained
-        W = np.dot(np.transpose(U1), P)
+        W = np.dot(np.transpose(U), P)
         
         return W
     
@@ -231,7 +230,7 @@ class CSP():
             
         return trials_csp
     
-    def trialPSDEvaluation(self, trial_label_class, trial_idx):
+    def trialPSDEvaluation(self, trials_matrix, trial_idx):
         """
         Evaluate the PSD (Power Spectral Density) for a single trial. 
     
@@ -250,7 +249,7 @@ class CSP():
              A list containing the frequencies for which the PSD was computed. 
     
         """
-        trials_matrix = self.trials_dict[trial_label_class]
+
         trial = trials_matrix[trial_idx, :, :]
         PSD_trial = np.zeros((trials_matrix.shape[1], int(trials_matrix.shape[2] / 2) + 1))
         freq_list = []
@@ -376,7 +375,7 @@ class CSP():
         plt.xlabel("Samples")
         plt.ylabel("Micro-Volt")
         
-    def plotPSD(self, trial_idx, ch_idx, freq_vector = None):
+    def plotPSD(self, trial_idx, ch_idx):
         """
         Plot for a two classes of PSD
     
@@ -398,15 +397,13 @@ class CSP():
             
         PSD_matrix_1 = PSD_list[0]
         PSD_matrix_2 = PSD_list[1]
+        print(PSD_matrix_1.shape)
         
         if(type(ch_idx) == int):
             plt.figure(figsize = (15, 10))
-            if(freq_vector != None): 
-                plt.plot(freq_vector[trial_idx], PSD_matrix_1[trial_idx, ch_idx, :])
-                plt.plot(freq_vector[trial_idx], PSD_matrix_2[trial_idx, ch_idx, :])
-            else: 
-                plt.plot(PSD_matrix_1[trial_idx, ch_idx, :])
-                plt.plot(PSD_matrix_2[trial_idx, ch_idx, :]) 
+
+            plt.plot(PSD_matrix_1[ch_idx, :])
+            plt.plot(PSD_matrix_2[ch_idx, :]) 
             
             plt.xlabel('Frequency [Hz]')
             plt.title('Channel N.' + str(ch_idx))
@@ -414,12 +411,8 @@ class CSP():
             fig, axs = plt.subplots(len(ch_idx), 1, figsize = (15, len(ch_idx) * 6))
            
             for ax, ch in zip(axs, ch_idx):
-                if(freq_vector != None): 
-                    ax.plot(freq_vector[trial_idx], PSD_matrix_1[trial_idx, ch, :])
-                    ax.plot(freq_vector[trial_idx], PSD_matrix_2[trial_idx, ch, :])
-                else: 
-                    ax.plot(PSD_matrix_1[trial_idx, ch, :]) 
-                    ax.plot(PSD_matrix_2[trial_idx, ch, :]) 
+                ax.plot(PSD_matrix_1[ch, :]) 
+                ax.plot(PSD_matrix_2[ch, :]) 
                 ax.set_xlabel('Frequency [Hz]')
                 ax.set_title('Channel N.' + str(ch))
                 
@@ -452,7 +445,9 @@ class CSP():
         ax.scatter(features_1[:, 1], features_1[:, -1], color = 'b')
         ax.scatter(features_2[:, 1], features_2[:, -1], color = 'r')
         
-        if(self.train_sklearn == True and self.n_features == 2):
+        if(self.train_sklearn == True and self.n_features == 2 and
+           (self.classifier.__class__.__name__ == 'LinearDiscriminantAnalysis' or (self.classifier.__class__.__name__ == 'SVC' and self.classifier.kernel == 'linear'))
+           ):
             coef = self.classifier.coef_
             bias = self.classifier.intercept_[0]
             
