@@ -455,7 +455,7 @@ class CSP():
             max_x = max(max(features_1[:, 1]), max(features_2[:, 1]))
             x = np.linspace(min_x, max_x)
             
-            y1 = (bias - coef[0, 0] * x) / coef[0, 1]
+            y1 = - (bias + coef[0, 0] * x) / coef[0, 1]
             
             ax.plot(x, y1, color = 'k')
             # print(coef, bias)
