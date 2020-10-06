@@ -39,7 +39,7 @@ class CSP():
         # CSP filter evaluation
         self.W = self.evaluateW()
         
-        # Spatial filtering and features
+        # Spatial filtering and features evaluation
         self.features_dict = {}
         for key in self.trials_dict.keys():
             tmp_trial = self.spatialFilteringW(self.filt_trial_dict[key])
