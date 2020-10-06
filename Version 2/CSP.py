@@ -132,7 +132,7 @@ class CSP():
             covariance_matrix[i, :, :] = np.cov(trial)
             
         mean_cov = np.mean(covariance_matrix, 0)
-            
+        
         return mean_cov
     
     def whitening(self, sigma, mode = 2):

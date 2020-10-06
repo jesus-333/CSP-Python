@@ -13,3 +13,4 @@ Dataset/D1_100Hz/Train/BCICIV_calib_ds1d.mat
 Dataset/D1_100Hz/Train/BCICIV_calib_ds1e.mat
 Dataset/D1_100Hz/Train/BCICIV_calib_ds1f.mat
 Dataset/D1_100Hz/Train/BCICIV_calib_ds1g.mat
+*.mat
