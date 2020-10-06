@@ -167,8 +167,7 @@ class CSP():
             d, V = np.linalg.eigh(sigma)
             fudge = 10E-18
          
-            # A fudge factor can be used so that eigenvectors associated with
-            # small eigenvalues do not get overamplified.
+            # A fudge factor can be used so that eigenvectors associated with small eigenvalues do not get overamplified.
             D = np.diag(1. / np.sqrt(d+fudge))
          
             # whitening matrix
