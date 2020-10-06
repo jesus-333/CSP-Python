@@ -180,13 +180,6 @@ class CSP():
         """
         Evaluate the spatial filter of the CSP algorithm
     
-        Parameters
-        ----------
-        trials_1 : numpy 3D-matrix
-            Trials matrix of class 1. The dimensions must be trials x channel x samples
-        trials_2 : numpy 3D-matrix
-            Trials matrix of class 2. The dimensions must be trials x channel x samples
-    
         Returns
         -------
         W : numpy 2D-matrix
