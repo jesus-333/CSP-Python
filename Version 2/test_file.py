@@ -18,8 +18,21 @@ import numpy as np
 
 from sklearn.svm import SVC
 
+# x1 = np.linspace(1, sx_0.shape[0], sx_0.shape[0])
+# x2 = x1 + 0.35
+
+# # Mean through trials of all the features
+# y1 = sx_0
+# y2 = dx_0
+
+# fig, ax = plt.subplots(figsize = (15, 10))
+# ax.bar(x1, y1, width = 0.3, color = 'b', align='center')
+# ax.bar(x2, y2, width = 0.3, color = 'r', align='center')
+# ax.set_xlim(0.5, 59.5)
+
 #%%
 tmp_string = 'abcdefg'
+# tmp_string = 'f'
 
 for idx in tmp_string:
 
@@ -51,4 +64,4 @@ for idx in tmp_string:
     
     # CSP_clf.trainClassifier(classifier = SVC(kernel = 'linear'))
     
-    CSP_clf.plotFeaturesScatter()
+    CSP_clf.plotFeaturesScatter('Plot', idx)

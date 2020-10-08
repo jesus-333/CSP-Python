@@ -254,7 +254,7 @@ class CSP():
             
         return PSD_trial, freq_list
     
-    def trainClassifier(self, n_features = 2, train_ratio = 0.75, classifier = None):
+    def trainClassifier(self, n_features = 1, train_ratio = 0.75, classifier = None):
         """
         Divide the data in train set and test set and used the data to train the classifier.
 
@@ -275,12 +275,13 @@ class CSP():
         self.n_features = n_features
         
         features_1, features_2 = self.extractFeatures(n_features)
+        self.feat_1 = features_1; self.feat_2 = features_2
     
         # Save both features in a single data matrix
         data_matrix = np.zeros((features_1.shape[0] + features_2.shape[0], features_1.shape[1]))
         data_matrix[0:features_1.shape[0], :] = features_1
         data_matrix[features_1.shape[0]:, :] = features_2
-        self.tamp_data_matrix = data_matrix
+        self.tmp_data_matrix = data_matrix
         
         # Create the label vector
         label = np.zeros(data_matrix.shape[0])
@@ -317,27 +318,36 @@ class CSP():
         
         return self.classifier
     
-    def extractFeatures(self, n_features = 2):
+    def extractFeatures(self, n_features = 1):
+        """
+        Extract the first n_features and the last n_features
+
+        Parameters
+        ----------
+        n_features : int, optional
+            Number of features to extract from each side. The default is 2.
+
+        """
         self.n_features = n_features
         
         keys = list(self.features_dict.keys())
         features_1_tmp = self.features_dict[keys[0]]
         features_2_tmp = self.features_dict[keys[1]]
         
-        if(n_features % 2 != 0): n_features -= 1
-        if(n_features < 1 or n_features > features_1_tmp.shape[1]): n_features = 2
+        if(n_features < 1 or n_features > features_1_tmp.shape[1]): n_features = 1
         
-        features_1 = np.zeros((features_1_tmp.shape[0], n_features))
-        features_2 = np.zeros((features_2_tmp.shape[0], n_features))
+        features_1 = np.zeros((features_1_tmp.shape[0], n_features * 2))
+        features_2 = np.zeros((features_2_tmp.shape[0], n_features * 2))
+
         for i in range(n_features):
             features_1[:, i] = features_1_tmp[:, i]
-            features_1[:, -i] = features_1_tmp[:, -i]
+            features_1[:, -(i + 1)] = features_1_tmp[:, -(i + 1)]
             features_2[:, i] = features_2_tmp[:, i]
-            features_2[:, -i] = features_2_tmp[:, -i]
-            
+            features_2[:, -(i + 1)] = features_2_tmp[:, -(i + 1)]
+
         return features_1, features_2
     
-    def trainLDA(self, n_features = 2):
+    def trainLDA(self, n_features = 1):
         """
         Hand-made implementation of the LDA classifier
 
@@ -419,6 +429,7 @@ class CSP():
         x1 = np.linspace(1, features_1.shape[1], features_1.shape[1])
         x2 = x1 + 0.35
         
+        # Mean through trials of all the features
         y1 = np.mean(features_1, 0)
         y2 = np.mean(features_2, 0)
         
@@ -427,24 +438,26 @@ class CSP():
         ax.bar(x2, y2, width = width, color = 'r', align='center')
         ax.set_xlim(0.5, 59.5)
         
+        # print(y1.shape, features_1.shape)
         
-    def plotFeaturesScatter(self):
+        
+    def plotFeaturesScatter(self, path = None, name = None):
         keys = list(self.features_dict.keys())
         features_1 = self.features_dict[keys[0]]
         features_2 = self.features_dict[keys[1]]
         
         fig, ax = plt.subplots(figsize = (15, 10))
-        ax.scatter(features_1[:, 1], features_1[:, -1], color = 'b')
-        ax.scatter(features_2[:, 1], features_2[:, -1], color = 'r')
+        ax.scatter(features_1[:, 0], features_1[:, -1], color = 'b')
+        ax.scatter(features_2[:, 0], features_2[:, -1], color = 'r')
         
-        if(self.train_sklearn == True and self.n_features == 2 and
+        if(self.train_sklearn == True and self.n_features == 1 and
            (self.classifier.__class__.__name__ == 'LinearDiscriminantAnalysis' or (self.classifier.__class__.__name__ == 'SVC' and self.classifier.kernel == 'linear'))
            ):
             coef = self.classifier.coef_
             bias = self.classifier.intercept_[0]
             
-            min_x = min(min(features_1[:, 1]), min(features_2[:, 1]))
-            max_x = max(max(features_1[:, 1]), max(features_2[:, 1]))
+            min_x = min(min(features_1[:, 0]), min(features_2[:, 0]))
+            max_x = max(max(features_1[:, 0]), max(features_2[:, 0]))
             x = np.linspace(min_x, max_x)
             
             y1 = - (bias + coef[0, 0] * x) / coef[0, 1]
@@ -452,9 +465,9 @@ class CSP():
             ax.plot(x, y1, color = 'k')
             # print(coef, bias)
             
-        if(self.train_LDA and self.n_features == 2):
-            min_x = min(min(features_1[:, 1]), min(features_2[:, 1]))
-            max_x = max(max(features_1[:, 1]), max(features_2[:, 1]))
+        if(self.train_LDA and self.n_features == 1):
+            min_x = min(min(features_1[:, 0]), min(features_2[:, 0]))
+            max_x = max(max(features_1[:, 0]), max(features_2[:, 0]))
             x = np.linspace(min_x, max_x)
             y2 = (self.b1 - self.W1[0] * x) / self.W1[1]
             
@@ -462,5 +475,7 @@ class CSP():
         
         ax.set_xlabel('Last Component')
         ax.set_ylabel('First Component')
-            
+        
+        if(path != None and name != None):
+            fig.savefig(path + '/' + str(name) + '.png')
     

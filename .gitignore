@@ -14,3 +14,5 @@ Dataset/D1_100Hz/Train/BCICIV_calib_ds1e.mat
 Dataset/D1_100Hz/Train/BCICIV_calib_ds1f.mat
 Dataset/D1_100Hz/Train/BCICIV_calib_ds1g.mat
 *.mat
+Version 2/__pycache__/CSP_support_function.cpython-38.pyc
+Version 2/__pycache__/CSP.cpython-38.pyc
