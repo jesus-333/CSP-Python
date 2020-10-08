@@ -9,9 +9,9 @@ Despite *Languages* section say that the major part of the code is in MATLAB and
 ## Version 1
 First implementation based on the MATLAB tutorial inside the folder *Matlab Tutorial CSP*. The functions are all separated and are inside the file *CSP_support_function-py* and they are executed in a main file called *test_file.py*.
 
-This version work with no major bug but it has some logical problem with the classifier.
+This version work with no major bug but it has some logical problem with the classifier and the features seòector.
 
-## Version 2
+## Version 2 (Definitive version)
 Improved version based on the function of version 1. Now all the function are inside a class (*CSP.py* file) so you can create a CSP object. I try to make the class as general as possible. For this reasons the class don't have any methods to read data. The class exepct you to provided the data in a 3D matrix of dimension **number of trials x channels x number of samples**.
 
 The file inside this version are the following:
