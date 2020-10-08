@@ -32,7 +32,6 @@ from sklearn.svm import SVC
 
 #%%
 tmp_string = 'abcdefg'
-# tmp_string = 'f'
 
 for idx in tmp_string:
 
@@ -59,9 +58,20 @@ for idx in tmp_string:
     # CSP_clf.plotFeatures()
     # CSP_clf.plotPSD(15, 12)
     
-    CSP_clf.trainClassifier()
+    CSP_clf.trainClassifier(print_var = True)
     CSP_clf.trainLDA()
     
     # CSP_clf.trainClassifier(classifier = SVC(kernel = 'linear'))
     
-    CSP_clf.plotFeaturesScatter('Plot', idx)
+    CSP_clf.plotFeaturesScatter()
+    
+    i = 79
+    for key in trials_dict.keys():
+        a = trials_dict[key][i, :, :]
+        y = CSP_clf.evaluate(a)
+        print(key, ' (sklearn):     ', y)
+        
+        y = CSP_clf.evaluate(a, mode = 2)
+        print(key, '(handmade):     ', y)
+    print("- - - - - - - - - - - - - - - - - - - - - - - -\n")
+    

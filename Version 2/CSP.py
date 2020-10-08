@@ -254,7 +254,7 @@ class CSP():
             
         return PSD_trial, freq_list
     
-    def trainClassifier(self, n_features = 1, train_ratio = 0.75, classifier = None):
+    def trainClassifier(self, n_features = 1, train_ratio = 0.75, classifier = None, print_var = False):
         """
         Divide the data in train set and test set and used the data to train the classifier.
 
@@ -285,8 +285,8 @@ class CSP():
         
         # Create the label vector
         label = np.zeros(data_matrix.shape[0])
-        label[0:features_1.shape[0]] = 1
-        label[features_1.shape[0]:] = 2
+        label[0:features_1.shape[0]] = -1
+        label[features_1.shape[0]:] = 1
         self.tmp_label = label
         
         # Shuffle the data
@@ -310,15 +310,15 @@ class CSP():
         
         # Train Classifier
         self.classifier.fit(train_data, train_label)
-        print("Accuracy on TRAIN set: ", self.classifier.score(train_data, train_label))
+        if(print_var): print("Accuracy on TRAIN set: ", self.classifier.score(train_data, train_label))
         
         # Test parameters
-        print("Accuracy on TEST set: ", self.classifier.score(test_data, test_label), "\n")
+        if(print_var): print("Accuracy on TEST set: ", self.classifier.score(test_data, test_label), "\n")
         self.train_sklearn = True
         
         return self.classifier
     
-    def extractFeatures(self, n_features = 1):
+    def extractFeatures(self, n_features = 1, features = np.zeros(0)):
         """
         Extract the first n_features and the last n_features
 
@@ -326,26 +326,39 @@ class CSP():
         ----------
         n_features : int, optional
             Number of features to extract from each side. The default is 2.
+            
+        features: numpy array, optional
+            When provided the function extract the features from this vector. This parameter is only provided when the function is used to classify unknow trial thorugh the evaluation() function.
 
         """
-        self.n_features = n_features
         
-        keys = list(self.features_dict.keys())
-        features_1_tmp = self.features_dict[keys[0]]
-        features_2_tmp = self.features_dict[keys[1]]
-        
-        if(n_features < 1 or n_features > features_1_tmp.shape[1]): n_features = 1
-        
-        features_1 = np.zeros((features_1_tmp.shape[0], n_features * 2))
-        features_2 = np.zeros((features_2_tmp.shape[0], n_features * 2))
+        if(features.shape[0] == 0):
+            self.n_features = n_features
+            
+            keys = list(self.features_dict.keys())
+            features_1_tmp = self.features_dict[keys[0]]
+            features_2_tmp = self.features_dict[keys[1]]
+            
+            if(n_features < 1 or n_features > features_1_tmp.shape[1]): n_features = 1
+            
+            features_1 = np.zeros((features_1_tmp.shape[0], n_features * 2))
+            features_2 = np.zeros((features_2_tmp.shape[0], n_features * 2))
+        else:
+            features_1 = np.zeros((1, n_features * 2))
+            features_1_tmp = features
 
         for i in range(n_features):
             features_1[:, i] = features_1_tmp[:, i]
             features_1[:, -(i + 1)] = features_1_tmp[:, -(i + 1)]
-            features_2[:, i] = features_2_tmp[:, i]
-            features_2[:, -(i + 1)] = features_2_tmp[:, -(i + 1)]
-
-        return features_1, features_2
+            if(features.shape[0] == 0):
+                features_2[:, i] = features_2_tmp[:, i]
+                features_2[:, -(i + 1)] = features_2_tmp[:, -(i + 1)]
+        
+        if(features.shape[0] == 0):
+            return features_1, features_2
+        else: 
+            return features_1
+    
     
     def trainLDA(self, n_features = 1):
         """
@@ -368,6 +381,43 @@ class CSP():
         
         self.train_LDA = True
         
+        
+    def evaluate(self, trial, filt = True, mode = 1):
+        """
+        Evalaute a single trial. The dimension of the input must be "n. channels x n.samples"
+
+        Parameters
+        ----------
+        trial : Numpy 2D matrix
+            Input trial to evaluate.
+        filt : Boolean, optional
+            If true the siganl will be band-pass filtered between 8 and 15 Hertz. Otherwise the raw signal will be used. The default is True.
+        mode : int, optional
+            Decide if use the sklearn classifier or the handmade classifier. 1 for sklearn, 2 for the handmade The default is 1.
+
+        Returns
+        -------
+        y : int
+            Label of trial. The value of the two label can be "1" or "-1"
+
+        """
+        
+        if(filt): 
+            tmp_trial = np.expand_dims(trial, axis = 0)
+            trial = self.bandFilterTrials(tmp_trial, 8, 15)
+        
+        CSP_filtered_trial = np.expand_dims((self.W).dot(trial[0, :, :]), axis = 0)
+        features = self.logVarEvaluation(CSP_filtered_trial)
+        features = self.extractFeatures(n_features = self.n_features, features = features)
+
+        if(mode == 1 and self.train_sklearn):
+            y = self.classifier.predict(features)[0]
+        elif(mode == 2 and self.train_LDA):
+            y = np.sign((self.W1).dot(np.squeeze(features)) + self.b1)
+        else:
+            y = self.classifier.predict(features)[0]
+            
+        return int(y)
     
     def plotTrial(self, trial_label_class, trial_idx, ch_idx, figsize = (15, 10)):
         trials_matrix = self.trials_dict[trial_label_class]
