@@ -1,5 +1,5 @@
 # CSP
- Python implementation of the CSP algorithm
+ Python implementation of the CSP algorithm. A more advance impemntation with the FBCSP can be find at this [link](https://github.com/jesus-333/FBCSP-Python).
 
 First implementation based on the dataset IV-1 (100 Hz) of the [BCI competition](http://www.bbci.de/competition/).
 The dataset is not included in the repository but can be easily downloaded at this [link](http://www.bbci.de/competition/iv/#datasets).
