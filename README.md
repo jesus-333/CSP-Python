@@ -17,6 +17,6 @@ The file inside this version are the following:
 2. *CSP_support_function.py*: in this version is relegated to have some minor function to read the database.
 3. *test_file.py*: testing of the class.
 
-The class can classify the data with an hand-made LDA classifier (*trainLDA()* function) or can use a sklearn classifier passed to the function *trainClassifier()*. 
+The class can classify the data with an hand-made LDA classifier (*trainLDA()* function) or can use a sklearn classifier passed to the function *trainClassifier()*. To evaluate a new trial use the *evaluate()* method.
 
 The class also provided some methods to plot the trials, the features of the data and the PSD (Power Spectral Density) of the various trials. 
