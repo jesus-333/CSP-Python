@@ -4,8 +4,6 @@
 First implementation based on the dataset IV-1 (100 Hz) of the [BCI competition](http://www.bbci.de/competition/).
 The dataset is not included in the repository but can be easily downloaded at this [link](http://www.bbci.de/competition/iv/#datasets).
 
-Despite *Languages* section say that the major part of the code is in MATLAB and HTML this derive form the tutorial file. ALL the implementation of the CSP is in python.
-
 ## Version 1
 First implementation based on the MATLAB tutorial inside the folder *Matlab Tutorial CSP*. The functions are all separated and are inside the file *CSP_support_function-py* and they are executed in a main file called *test_file.py*.
 
