@@ -1,10 +1,8 @@
 # CSP
- Python implementation of the CSP algorithm
+ Python implementation of the CSP algorithm. A more advance impemntation with the FBCSP can be find at this [link](https://github.com/jesus-333/FBCSP-Python).
 
 First implementation based on the dataset IV-1 (100 Hz) of the [BCI competition](http://www.bbci.de/competition/).
 The dataset is not included in the repository but can be easily downloaded at this [link](http://www.bbci.de/competition/iv/#datasets).
-
-Despite *Languages* section say that the major part of the code is in MATLAB and HTML this derive form the tutorial file. ALL the implementation of the CSP is in python.
 
 ## Version 1
 First implementation based on the MATLAB tutorial inside the folder *Matlab Tutorial CSP*. The functions are all separated and are inside the file *CSP_support_function-py* and they are executed in a main file called *test_file.py*.
@@ -19,6 +17,6 @@ The file inside this version are the following:
 2. *CSP_support_function.py*: in this version is relegated to have some minor function to read the database.
 3. *test_file.py*: testing of the class.
 
-The class can classify the data with an hand-made LDA classifier (*trainLDA()* function) or can use a sklearn classifier passed to the function *trainClassifier()*. 
+The class can classify the data with an hand-made LDA classifier (*trainLDA()* function) or can use a sklearn classifier passed to the function *trainClassifier()*. To evaluate a new trial use the *evaluate()* method.
 
 The class also provided some methods to plot the trials, the features of the data and the PSD (Power Spectral Density) of the various trials. 
